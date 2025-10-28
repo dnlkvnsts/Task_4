@@ -1,12 +1,10 @@
-﻿
-using System.ComponentModel.DataAnnotations;
-
-namespace Task_4.Models
+﻿namespace Task_4.DTOs
 {
-    public class Author
+    public class AuthorDTO
     {
         public int Id { get; set; }
         public string Name { get; set; }
         public DateTime? DateOfBirth { get; set; }
+
     }
 }

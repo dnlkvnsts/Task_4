@@ -1,13 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Task_4.Models
+namespace Task_4.DTOs
 {
-    public class Book
+    public class BookCreateDTO
     {
-        public int Id { get; set; }
         public string Title { get; set; }
-        public int PublishedYear { get; set; }
-        public int AuthorId { get; set; }
 
+        public int PublishedYear { get; set; }
+
+        public int AuthorId { get; set; }
     }
 }

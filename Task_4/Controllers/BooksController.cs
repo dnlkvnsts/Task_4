@@ -1,102 +1,76 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Task_4.DTOs;
 using Task_4.Models;
+using Task_4.Services;
 
 namespace Task_4.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class BooksController : ControllerBase
     {
-
-        [HttpGet]
-        public ActionResult<IEnumerable<Book>> GetAllBooks()
+        private readonly IBookService _service;
+      
+        public BooksController(
+            IBookService service)   
         {
-            return Ok(Database.books);
+            _service = service;
+        }
+
+       
+        [HttpGet]
+       
+        public ActionResult<IEnumerable<BookDTO>> GetAll()
+        {
+
+            return _service.GetAllBooks();
         }
 
         [HttpGet("{id}")]
-
-        public ActionResult<Book> GetBookById(int id)
+      
+        public ActionResult<BookDTO> GetById(int id)
         {
-            var book = Database.books.FirstOrDefault(b => b.Id == id);
 
-            if (book == null)
-            {
-                return NotFound($"Don't exist book with id {id}");
-            }
-
-            return Ok(book);
+            return _service.GetBookById(id);
         }
 
+      
         [HttpPost]
-
-        public ActionResult<Book> CreateBook([FromBody] Book book)
+       
+        public async Task<ActionResult<BookDTO>> Create([FromBody] BookCreateDTO dto)
         {
+
+            var bookResult = _service.CreateBook(dto);
+
+
+            var book = bookResult.Value;
+
+
             if (book == null)
             {
-                return BadRequest("Data of book can't be empty");
+                return bookResult.Result;
             }
-
-            var authorExists = Database.authors.Any(a => a.Id == book.AuthorId);
-
-            if (!authorExists)
-            {
-                return BadRequest($"Don't exist author with id {book.AuthorId}");
-            }
-
-            book.Id = Database.books.Any() ? Database.books.Max(b => b.Id) + 1 : 1;
-
-            Database.books.Add(book);
-
-            return CreatedAtAction(nameof(GetBookById), new { id = book.Id }, book);
+            return CreatedAtAction(nameof(GetById), new { id = book.Id }, book);
         }
 
+      
         [HttpPut("{id}")]
-        public ActionResult<Book> UpdateBook(int id, [FromBody] Book updatedBook)
+
+        public async Task<ActionResult<BookDTO>> Update(int id, [FromBody] BookCreateDTO dto)
         {
-            if (updatedBook == null)
-            {
-                return BadRequest("Data cant't be empty");
-            }
 
-            var book = Database.books.FirstOrDefault(b => b.Id == id);
-
-            if (book == null)
-            {
-                return NotFound($"Don't exist book with id {id}");
-            }
-
-            var authorExists = Database.authors.Any(a => a.Id == updatedBook.AuthorId);
-
-            if (!authorExists)
-            {
-                return BadRequest($"Don't exist author with id {updatedBook.AuthorId}");
-            }
-
-            book.Title = updatedBook.Title;
-            book.PublishedYear = updatedBook.PublishedYear;
-            book.AuthorId = updatedBook.AuthorId;
-
-
-            return Ok(book);
+            return _service.UpdateBook(id, dto);
         }
 
+   
         [HttpDelete("{id}")]
-
-        public ActionResult DeleteBook(int id)
+      
+        public ActionResult<BookDTO> Delete(int id)
         {
-            var book = Database.books.FirstOrDefault(b => b.Id == id);
+           return  _service.DeleteBook(id);
 
-
-            if (book == null)
-            {
-                return NotFound($"Don't exist book with id {id}");
-            }
-
-            Database.books.Remove(book);
-
-            return NoContent();
         }
     }
 }

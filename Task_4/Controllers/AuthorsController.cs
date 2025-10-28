@@ -1,86 +1,77 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Task_4.DTOs;
 using Task_4.Models;
+using Task_4.Services;
 
 namespace Task_4.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class AuthorsController : ControllerBase
     {
-        [HttpGet]
-        public ActionResult<IEnumerable<Author>> GetAllAuthors()
+        private readonly IAuthorService _service;
+
+        public AuthorsController(
+            IAuthorService service)
         {
-            return Ok(Database.authors);
+            _service = service;
         }
+
+
+        [HttpGet]
+
+        public ActionResult<IEnumerable<AuthorDTO>> GetAll()
+        {
+            return _service.GetAllAuthors();
+        }
+
 
         [HttpGet("{id}")]
 
-        public ActionResult<Author> GetAuthorById(int id)
+        public ActionResult<AuthorDTO> GetById(int id)
         {
-            var author = Database.authors.FirstOrDefault(a => a.Id == id);
 
-            if (author == null)
-            {
-                return NotFound($"Don't exist author with id {id}");
-            }
-
-            return Ok(author);
+            return _service.GetAuthorById(id);
         }
+
 
         [HttpPost]
 
-        public ActionResult<Author> CreateAuthor([FromBody] Author author)
+        public async Task<ActionResult<AuthorDTO>> Create([FromBody] AuthorCreateDTO dto)
         {
-            if(author == null)
-            {
-                return BadRequest("Data of author can't be empty");
-            }
+            var authorResult = _service.CreateAuthor(dto);
 
-            author.Id = Database.authors.Any() ? Database.authors.Max(i => i.Id) + 1 : 1;
 
-            Database.authors.Add(author);
+            var author = authorResult.Value;
 
-            return CreatedAtAction(nameof(GetAuthorById), new { id = author.Id }, author);
-        }
-
-        [HttpPut("{id}")]
-        public ActionResult<Author> UpdateAuthor (int id, [FromBody] Author updatedAuthor)
-        {
-            if (updatedAuthor == null)
-            {
-                return BadRequest("Data cant't be empty");
-            }
-
-            var author = Database.authors.FirstOrDefault(a => a.Id == id);
 
             if (author == null)
             {
-                return NotFound($"Don't exist author with id {id}");
+
+                return authorResult.Result;
             }
 
+            return CreatedAtAction(nameof(GetById), new { id = author.Id }, author);
 
-            author.Name = updatedAuthor.Name;
-            author.DateOfBirth = updatedAuthor.DateOfBirth;
-
-            return Ok(author);
         }
+
+
+        [HttpPut("{id}")]
+
+        public async Task<ActionResult<AuthorDTO>> Update(int id, [FromBody] AuthorCreateDTO dto)
+        {
+            return _service.UpdateAuthor(id, dto);
+        }
+
 
         [HttpDelete("{id}")]
 
-        public ActionResult DeleteAuthor(int id)
+        public ActionResult<AuthorDTO> Delete(int id)
         {
-            var author = Database.authors.FirstOrDefault(a => a.Id == id);
 
-
-            if (author == null)
-            {
-                return NotFound($"Don't exist author with id {id}");
-            }
-
-            Database.authors.Remove(author);
-
-            return NoContent();
+            return _service.DeleteAuthor(id);
         }
     }
 }
