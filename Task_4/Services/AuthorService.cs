@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using Task_4.DTOs;
+using Task_4.Extentions;
 using Task_4.Models;
 using Task_4.Repositories;
-using Task_4.Extensions;
 
 namespace Task_4.Services
 {
@@ -10,16 +11,19 @@ namespace Task_4.Services
     {
         private readonly IAuthorRepository _authorRepository;
         private readonly IBookRepository _bookRepository;
+        private readonly IStringLocalizer<AuthorService> _localizer;
         private readonly IMapperService _mapper;
 
         public AuthorService(
             IAuthorRepository authorRepository,
             IBookRepository bookRepository,
-            IMapperService mapper)
+            IMapperService mapper,
+            IStringLocalizer<AuthorService> localizer)
         {
             _authorRepository = authorRepository;
             _bookRepository = bookRepository;
             _mapper = mapper;
+            _localizer = localizer;
         }
 
         public ActionResult<IEnumerable<AuthorDTO>> GetAllAuthors()
@@ -35,8 +39,10 @@ namespace Task_4.Services
 
             if (author == null)
             {
-                return ResultExtension.EntityNotFound<AuthorDTO>(id, "Author");
+                string localizedMessage = _localizer["AuthorNotFound", id];
+                return ResultExtension.EntityNotFound<AuthorDTO>(id, "Author",localizedMessage);
             }
+
 
             return new OkObjectResult(_mapper.MapAuthorToDTO(author));
         }
@@ -65,7 +71,8 @@ namespace Task_4.Services
 
             if (author == null)
             {
-                return ResultExtension.EntityNotFound<AuthorDTO>(id, "Author");
+                string localizedMessage = _localizer["AuthorNotFound", id];
+                return ResultExtension.EntityNotFound<AuthorDTO>(id, "Author",localizedMessage);
             }
 
             author.Name = dto.Name;
@@ -81,16 +88,21 @@ namespace Task_4.Services
         {
             var author = _authorRepository.GetById(id);
 
+
+
             if (author == null)
             {
-                return ResultExtension.EntityNotFound<AuthorDTO>(id, "Author");
+                string localizedMessage = _localizer["AuthorNotFound", id];
+                return ResultExtension.EntityNotFound<AuthorDTO>(id, "Author", localizedMessage);
             }
+
 
             var books = _bookRepository.GetBooksByAuthorId(id).ToList();
 
             if (books.Any())
             {
-                return ResultExtension.EntityBadRequest($"Cannot delete author with {books.Count} book(s)");
+                string message = _localizer["CannotDeleteAuthorWithBooks", books.Count];
+                return ResultExtension.EntityBadRequest(message); 
             }
 
             _authorRepository.Delete(id);

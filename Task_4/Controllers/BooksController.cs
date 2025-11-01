@@ -12,16 +12,21 @@ namespace Task_4.Controllers
     public class BooksController : ControllerBase
     {
         private readonly IBookService _service;
-      
+
+
+
         public BooksController(
-            IBookService service)   
+            IBookService service)
+
         {
             _service = service;
+
+
         }
 
-       
+
         [HttpGet]
-       
+
         public ActionResult<IEnumerable<BookDTO>> GetAll()
         {
 
@@ -29,20 +34,22 @@ namespace Task_4.Controllers
         }
 
         [HttpGet("{id}")]
-      
+
         public ActionResult<BookDTO> GetById(int id)
         {
 
             return _service.GetBookById(id);
         }
 
-      
+
         [HttpPost]
-       
+
         public async Task<ActionResult<BookDTO>> Create([FromBody] BookCreateDTO dto)
         {
 
             var bookResult = _service.CreateBook(dto);
+
+
 
 
             var book = bookResult.Value;
@@ -50,27 +57,30 @@ namespace Task_4.Controllers
 
             if (book == null)
             {
+
                 return bookResult.Result;
             }
             return CreatedAtAction(nameof(GetById), new { id = book.Id }, book);
         }
 
-      
+
         [HttpPut("{id}")]
 
         public async Task<ActionResult<BookDTO>> Update(int id, [FromBody] BookCreateDTO dto)
         {
 
+
             return _service.UpdateBook(id, dto);
         }
 
-   
+
         [HttpDelete("{id}")]
-      
+
         public ActionResult<BookDTO> Delete(int id)
         {
-           return  _service.DeleteBook(id);
 
+            _service.DeleteBook(id);
+            return NoContent();
         }
     }
 }

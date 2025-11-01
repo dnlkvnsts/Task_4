@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 using Task_4.DTOs;
 using Task_4.Repositories;
 using Task_4.Services;
@@ -9,11 +9,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<ValidFilter>();
 
-} 
+}
 );
 
 
@@ -22,7 +24,7 @@ builder.Services.AddScoped<IAuthorRepository, AuthorRepository>();
 
 
 builder.Services.AddScoped<IAuthorService, AuthorService>();
-builder.Services.AddScoped<IBookService,BookService>();
+builder.Services.AddScoped<IBookService, BookService>();
 
 builder.Services.AddScoped<IValidator<AuthorCreateDTO>, AuthorValidator>();
 builder.Services.AddScoped<IValidator<BookCreateDTO>, BookValidator>();
@@ -36,6 +38,16 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+var supportedCultures = new[] { "en-US", "ru-Ru" };
+
+var localisationOptions = new RequestLocalizationOptions()
+    .SetDefaultCulture(supportedCultures[0])
+    .AddSupportedCultures(supportedCultures)
+    .AddSupportedUICultures(supportedCultures);
+
+
+app.UseRequestLocalization(localisationOptions);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

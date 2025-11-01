@@ -1,28 +1,30 @@
 ﻿using FluentValidation;
 using Task_4.DTOs;
+using Microsoft.Extensions.Localization;
 
 namespace Task_4.Validators
 {
 
     public class AuthorValidator : AbstractValidator<AuthorCreateDTO>
     {
-        public AuthorValidator()
+        public AuthorValidator(IStringLocalizer<AuthorValidator> localizer)
         {
             RuleFor(a => a.Name)
                 .NotEmpty()
-                .WithMessage("Name is required")
+                .WithMessage(localizer["NameRequired"]) 
 
                 .Matches(@"^[a-zA-Zа-яА-Я\s'-]+$")
-                .WithMessage("Name can only contain letters")
+                .WithMessage(localizer["NamePattern"]) 
+
                 .Length(1, 20)
-                .WithMessage("Name must be have 1-20 symbols");
+                .WithMessage(localizer["NameLength"]); 
 
             RuleFor(a => a.DateOfBirth)
                 .NotEmpty()
-                .WithMessage("Date of birth is required")
-               .LessThanOrEqualTo(DateTime.Now)
-               .WithMessage("Date of birth can not be in the future")
-               .When(x => x.DateOfBirth.HasValue);
+                .WithMessage(localizer["BirthDateRequired"]) 
+                .LessThanOrEqualTo(DateTime.Now)
+                .WithMessage(localizer["BirthDateInFuture"]) 
+                .When(x => x.DateOfBirth.HasValue);
         }
     }
 }

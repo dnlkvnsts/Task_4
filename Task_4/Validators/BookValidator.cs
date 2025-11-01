@@ -1,31 +1,30 @@
 ﻿using FluentValidation;
+using Microsoft.Extensions.Localization;
 using Task_4.DTOs;
 
 namespace Task_4.Validators
 {
     public class BookValidator : AbstractValidator<BookCreateDTO>
     {
-        public BookValidator()
+        public BookValidator(IStringLocalizer<BookValidator> localizer)
         {
             RuleFor(b => b.Title)
                .NotEmpty()
-               .WithMessage("Title is required")
+               .WithMessage(localizer["TitleRequired"])
                .Length(1, 20)
-               .WithMessage("Title must be 1-20 characters")
-               .Matches(@"^[a-zA-Zа-яА-Я0-9\s':,-]+$")
-               .WithMessage("Title can contain only letters");
+               .WithMessage(localizer["TitleLength"]);
 
             RuleFor(b => b.PublishedYear)
                 .NotEmpty()
-                .WithMessage("Published year is required")
+                .WithMessage(localizer["YearRequired"])
                 .InclusiveBetween(1000, DateTime.Now.Year)
-                .WithMessage($"Published year must be from 1000 to {DateTime.Now.Year}");
+                .WithMessage(localizer["YearBorder"]);
 
             RuleFor(b => b.AuthorId)
                 .NotEmpty()
-                .WithMessage("Author ID is required")
+                .WithMessage(localizer["AuthorIdRequired"])
                 .GreaterThan(0)
-                .WithMessage("Author ID must be positive");
+                .WithMessage(localizer["IdPositive"]);
         }
     }
 }

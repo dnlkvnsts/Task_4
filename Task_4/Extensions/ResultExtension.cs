@@ -1,14 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace Task_4.Extensions
+namespace Task_4.Extentions
 {
     public static class ResultExtension
     {
-        public static ActionResult<T> EntityNotFound<T>(int id, string entityName)
+        public static ActionResult<T> EntityNotFound<T>(int id, string entityName, string message = null)
         {
+
+            string finalMessage = message ?? $"{entityName} with ID {id} not found";
+
             return new NotFoundObjectResult(new
             {
-                message = $"{entityName} with ID {id} not found"
+                message = finalMessage
             });
         }
 

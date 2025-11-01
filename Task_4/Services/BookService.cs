@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 using Task_4.DTOs;
-using Task_4.Extensions;
+using Task_4.Extentions;
 using Task_4.Models;
 using Task_4.Repositories;
 using static System.Reflection.Metadata.BlobBuilder;
@@ -11,22 +12,25 @@ namespace Task_4.Services
     {
         private readonly IBookRepository _bookRepository;
         private readonly IAuthorRepository _authorRepository;
-        private readonly IMapperService _mapper;  
+        private readonly IMapperService _mapper;
+        private readonly IStringLocalizer<BookService> _stringLocalizer;
 
         public BookService(
             IBookRepository bookRepository,
             IAuthorRepository authorRepository,
-            IMapperService mapper) 
+            IMapperService mapper,
+            IStringLocalizer<BookService> stringLocalizer)
         {
             _bookRepository = bookRepository;
             _authorRepository = authorRepository;
             _mapper = mapper;
+            _stringLocalizer = stringLocalizer;
         }
 
         public ActionResult<IEnumerable<BookDTO>> GetAllBooks()
         {
             var books = _bookRepository.GetAll();
-         
+
             return new OkObjectResult(books.Select(_mapper.MapBookToDTO));
         }
 
@@ -36,7 +40,8 @@ namespace Task_4.Services
 
             if (book == null)
             {
-                return ResultExtension.EntityNotFound<BookDTO>(id, "Book");
+                string localizedMessage = _stringLocalizer["BookNotFound", id];
+                return ResultExtension.EntityNotFound<BookDTO>(id, "Book",localizedMessage);
             }
 
             return new OkObjectResult(_mapper.MapBookToDTO(book));
@@ -48,7 +53,8 @@ namespace Task_4.Services
 
             if (author == null)
             {
-                return ResultExtension.EntityBadRequest($"Author with ID {dto.AuthorId} does not exist");
+                string localizedMessage = _stringLocalizer["AuthorDoesNotExist", dto.AuthorId];
+                return ResultExtension.EntityBadRequest(localizedMessage);
             }
 
             var book = new Book
@@ -60,7 +66,7 @@ namespace Task_4.Services
 
             _bookRepository.Create(book);
 
-     
+
             return new CreatedResult(
                 $"/api/books/{book.Id}",
                 _mapper.MapBookToDTO(book)
@@ -73,14 +79,16 @@ namespace Task_4.Services
 
             if (book == null)
             {
-                return ResultExtension.EntityNotFound<BookDTO>(id, "Book");
+                string localizedMessage = _stringLocalizer["BookNotFound", id];
+                return ResultExtension.EntityNotFound<BookDTO>(id, "Book", localizedMessage);
             }
 
             var author = _authorRepository.GetById(dto.AuthorId);
 
             if (author == null)
             {
-                return ResultExtension.EntityBadRequest($"Author with ID {dto.AuthorId} does not exist");
+                string localizedMessage = _stringLocalizer["AuthorDoesNotExist", dto.AuthorId];
+                return ResultExtension.EntityBadRequest(localizedMessage);
             }
 
             book.Title = dto.Title;
@@ -89,7 +97,7 @@ namespace Task_4.Services
 
             _bookRepository.Update(book);
 
-           
+
             return new OkObjectResult(_mapper.MapBookToDTO(book));
         }
 
@@ -99,8 +107,10 @@ namespace Task_4.Services
 
             if (book == null)
             {
-                return ResultExtension.EntityNotFound<BookDTO>(id, "Book");
+                string localizedMessage = _stringLocalizer["BookNotFound", id];
+                return ResultExtension.EntityNotFound<BookDTO>(id, "Book", localizedMessage);
             }
+
 
             _bookRepository.Delete(id);
 
